@@ -55,6 +55,7 @@ namespace WPF_MES_Monitoring_System.ViewModel
 
             using(var conn = new SQLite.SQLiteConnection(App.databasePath))
             {
+                conn.CreateTable<MachineLog>();
                 conn.Insert(newLog);
             }
 
@@ -65,6 +66,8 @@ namespace WPF_MES_Monitoring_System.ViewModel
         {
             using (var conn = new SQLite.SQLiteConnection(App.databasePath))
             {
+                conn.CreateTable<MachineLog>();
+
                 var logList = conn.Table<MachineLog>().OrderByDescending(l => l.Timestamp).ToList();
                 Logs = new ObservableCollection<MachineLog>(logList);
             }

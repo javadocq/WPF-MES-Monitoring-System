@@ -47,3 +47,6 @@ C:\Users\User\Desktop\wpf\WPF-MES-Monitoring-System\obj\Debug\net10.0-windows\re
 C:\Users\User\Desktop\wpf\WPF-MES-Monitoring-System\obj\Debug\net10.0-windows\WPF-MES-Monitoring-System.pdb
 C:\Users\User\Desktop\wpf\WPF-MES-Monitoring-System\obj\Debug\net10.0-windows\WPF-MES-Monitoring-System.genruntimeconfig.cache
 C:\Users\User\Desktop\wpf\WPF-MES-Monitoring-System\obj\Debug\net10.0-windows\ref\WPF-MES-Monitoring-System.dll
+C:\Users\User\Desktop\wpf\WPF-MES-Monitoring-System\obj\Debug\net10.0-windows\View\MachineView.g.cs
+C:\Users\User\Desktop\wpf\WPF-MES-Monitoring-System\obj\Debug\net10.0-windows\GeneratedInternalTypeHelper.g.cs
+C:\Users\User\Desktop\wpf\WPF-MES-Monitoring-System\obj\Debug\net10.0-windows\View\MachineView.baml

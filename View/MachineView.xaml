@@ -4,9 +4,39 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WPF_MES_Monitoring_System.View"
+        xmlns:vm="clr-namespace:WPF_MES_Monitoring_System.ViewModel"
         mc:Ignorable="d"
         Title="MachineView" Height="450" Width="800">
+
+    <Window.DataContext>
+        <vm:MainViewModel />
+    </Window.DataContext>
     <Grid>
-        
+        <StackPanel>
+            <Button Content="로그 생성" Command="{Binding AddLogCommand}" 
+                    Width="100" Height="30" Margin="10" HorizontalAlignment="Left"
+                    />
+
+            <DataGrid ItemsSource="{Binding Logs}" AutoGenerateColumns="False" ColumnWidth="*" SelectionChanged="DataGrid_SelectionChanged" Height="380">
+                <DataGrid.Resources>
+                    <Style TargetType="DataGridColumnHeader">
+                        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                    </Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="HorizontalAlignment" Value="Center"/>
+                        <Setter Property="VerticalAlignment" Value="Center"/>
+                    </Style>
+                </DataGrid.Resources>
+                
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="시간" Binding="{Binding Timestamp, StringFormat='HH:mm:ss'}"/>
+                    <DataGridTextColumn Header="설비" Binding="{Binding MachineName}"/>
+                    <DataGridTextColumn Header="상태" Binding="{Binding Status}"/>
+                    <DataGridTextColumn Header="온도" Binding="{Binding Temperature}"/>
+                    <DataGridTextColumn Header="압력" Binding="{Binding Pressure}"/>
+                    <DataGridTextColumn Header="메시지" Binding="{Binding LogMessage}"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </StackPanel>
     </Grid>
 </Window>

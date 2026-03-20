@@ -21,5 +21,10 @@ namespace WPF_MES_Monitoring_System.View
         {
             InitializeComponent();
         }
+
+        private void DataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+
+        }
     }
 }
