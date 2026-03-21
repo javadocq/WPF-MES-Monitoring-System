@@ -67,22 +67,19 @@ namespace WPF_MES_Monitoring_System.ViewModel
 
         }
 
-        public int TotalCount
-        {
-            get { return Logs.Count; }
-        }
+        public int TotalCount => Logs.GroupBy(x => x.MachineName) // 머신별로 그룹화
+                                        .Select(g => g.First())  // 각 그룹에서 첫 번째 로그 선택 (중복 제거)
+                                        .Count(); // 고유한 머신 개수 계산
 
         // 가동 중인 로그 개수 계산
-        public int RunningCount
-        {
-            get { return Logs.Count(log => log.Status == "RUN"); }
-        }
+        public int RunningCount => Logs.GroupBy(x => x.MachineName) // 머신별로 그룹화
+                                        .Select(g => g.First())  // 각 그룹에서 첫 번째 로그 선택 (중복 제거)
+                                        .Count(x => x.Status == "RUN"); // 그 중 가동 중인 것
 
         // 에러 상태인 로그 개수 계산
-        public int ErrorCount
-        {
-            get { return Logs.Count(log => log.Status == "ERROR"); }
-        }
+        public int ErrorCount => Logs.GroupBy(x => x.MachineName) // 머신별로 그룹화
+                                        .Select(g => g.First())  // 각 그룹에서 첫 번째 로그 선택 (중복 제거)
+                                        .Count(x => x.Status == "ERROR"); // 그 중 오류인 것
 
         private void LoadDataFromDb()
         {
