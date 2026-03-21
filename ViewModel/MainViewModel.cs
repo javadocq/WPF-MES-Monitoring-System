@@ -2,9 +2,10 @@
 using LiveCharts.Wpf;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Windows.Media;
 using System.Runtime.CompilerServices;
+using System.Timers;
 using System.Windows.Data;
+using System.Windows.Media;
 using System.Windows.Threading;
 using WPF_MES_Monitoring_System.Model;
 using WPF_MES_Monitoring_System.ViewModel.Command;
@@ -17,7 +18,10 @@ namespace WPF_MES_Monitoring_System.ViewModel
         // 불량률 데이터를 담을 시리즈
         public SeriesCollection DefectRateSeries { get; set; }
 
-        private string selectedMachine = "전체";
+        private string selectedMachine = ALL_MACHINES;
+        private const string ALL_MACHINES = "전체";
+        private const string STATUS_RUN = "RUN";
+        private const string STATUS_ERROR = "ERROR";
         private ICollectionView logView;
         public ICollectionView LogView
         {
@@ -56,18 +60,27 @@ namespace WPF_MES_Monitoring_System.ViewModel
         private DispatcherTimer timer;
         public MainViewModel()
         {
+            
+
+            InitializeData();
+            InitializeChart();
+            SetupTimer();
+
+            // 초기 데이터 로드
+            LoadDataFromDb();
+            UpdateAllStatus(); // 초기 카운트 계산
+        }
+
+        private void InitializeData()
+        {
             Logs = new ObservableCollection<MachineLog>();
 
             logView = CollectionViewSource.GetDefaultView(Logs);
             logView.Filter = FilterLogs; // 필터 조건 함수 연결
+        }
 
-            timer = new DispatcherTimer();
-            timer.Interval = TimeSpan.FromSeconds(2); // 2초마다 실행
-            timer.Tick += Timer_Tick; // 생성 로그를 timer.Tick 이벤트에 연결
-            timer.Start();
-            // 초기 데이터 로드
-            LoadDataFromDb();
-
+        private void InitializeChart()
+        {
             // 불량률 차트 초기화
             DefectRateSeries = new SeriesCollection
             {
@@ -80,17 +93,35 @@ namespace WPF_MES_Monitoring_System.ViewModel
                     Fill = Brushes.Transparent,
                 }
             };
-
             UpdateChartData();
         }
 
         private void UpdateChartData()
         {
-            var targetList = SelectedMachine == "전체"
+            var targetList = SelectedMachine == ALL_MACHINES
                 ? Logs.Take(20).ToList()
                 : Logs.Where(log => log.MachineName == SelectedMachine).Take(20).ToList();
 
             UpdateDefectRate(targetList);
+        }
+
+        private void SetupTimer()
+        {
+            timer = new DispatcherTimer();
+            timer.Interval = TimeSpan.FromSeconds(2); // 2초마다 실행
+            timer.Tick += Timer_Tick; // 생성 로그를 timer.Tick 이벤트에 연결
+            timer.Start();
+        }
+        private void UpdateAllStatus()
+        {
+            // 매번 중복 연산하지 않도록 최적화 (현재 상태 요약용)
+            var latestStatusPerMachine = Logs.GroupBy(x => x.MachineName)
+                                             .Select(g => g.First())
+                                             .ToList();
+
+            OnPropertyChanged(nameof(TotalCount));
+            OnPropertyChanged(nameof(RunningCount));
+            OnPropertyChanged(nameof(ErrorCount));
         }
 
         private void UpdateDefectRate(List<MachineLog> logList)
@@ -99,7 +130,7 @@ namespace WPF_MES_Monitoring_System.ViewModel
             {
                 return;
             }
-            double defectCount = logList.Count(log => log.Status == "ERROR");
+            double defectCount = logList.Count(log => log.Status == STATUS_ERROR);
             double totalCount = logList.Count;
             double defectRate = (defectCount / totalCount) * 100;
 
@@ -110,19 +141,12 @@ namespace WPF_MES_Monitoring_System.ViewModel
             DefectRateSeries[0].Values.Add(defectRate);
         }
 
-        public int TotalCount => Logs.GroupBy(x => x.MachineName) // 머신별로 그룹화
-                                        .Select(g => g.First())  // 각 그룹에서 첫 번째 로그 선택 (중복 제거)
-                                        .Count(); // 고유한 머신 개수 계산
+        private IEnumerable<MachineLog> LatestMachineLogs => Logs.GroupBy(x => x.MachineName).Select(g => g.First());
 
-        // 가동 중인 로그 개수 계산
-        public int RunningCount => Logs.GroupBy(x => x.MachineName) // 머신별로 그룹화
-                                        .Select(g => g.First())  // 각 그룹에서 첫 번째 로그 선택 (중복 제거)
-                                        .Count(x => x.Status == "RUN"); // 그 중 가동 중인 것
+        public int TotalCount => LatestMachineLogs.Count();
+        public int RunningCount => LatestMachineLogs.Count(x => x.Status == STATUS_RUN);
+        public int ErrorCount => LatestMachineLogs.Count(x => x.Status == STATUS_ERROR);
 
-        // 에러 상태인 로그 개수 계산
-        public int ErrorCount => Logs.GroupBy(x => x.MachineName) // 머신별로 그룹화
-                                        .Select(g => g.First())  // 각 그룹에서 첫 번째 로그 선택 (중복 제거)
-                                        .Count(x => x.Status == "ERROR"); // 그 중 오류인 것
 
         private void LoadDataFromDb()
         {
@@ -151,9 +175,10 @@ namespace WPF_MES_Monitoring_System.ViewModel
             machineService.SaveLog(newLog);
 
             Logs.Insert(0, newLog);
-            OnPropertyChanged(nameof(TotalCount));
-            OnPropertyChanged(nameof(RunningCount));
-            OnPropertyChanged(nameof(ErrorCount));
+            // 상태 요약 UI 갱신 알림
+            UpdateAllStatus();
+
+            // 차트 데이터 갱신
             UpdateChartData();
         }
 
@@ -168,7 +193,7 @@ namespace WPF_MES_Monitoring_System.ViewModel
             if (obj is MachineLog log)
             {
                 // "전체"가 선택된 경우 모든 로그를 보여줌
-                if (SelectedMachine == "전체")
+                if (SelectedMachine == ALL_MACHINES)
                     return true;
                 // 선택된 머신 이름과 일치하는 로그만 보여줌
                 return log.MachineName == SelectedMachine;
