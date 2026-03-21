@@ -40,6 +40,21 @@
         </UniformGrid>
         <Grid Grid.Row="1" Margin="10,0,10,10">
             <DataGrid ItemsSource="{Binding Logs}" AutoGenerateColumns="False" ColumnWidth="*" SelectionChanged="DataGrid_SelectionChanged" Height="380">
+                <DataGrid.RowStyle>
+                    <Style TargetType="DataGridRow">
+                        <Setter Property="Background" Value="White"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Status}" Value="Error">
+                                <Setter Property="Background" Value="RED"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Status}" Value="Running">
+                                <Setter Property="Background" Value="LightGreen"/>
+                                <Setter Property="Foreground" Value="Black"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </DataGrid.RowStyle>
                 <DataGrid.Resources>
                     <Style TargetType="DataGridColumnHeader">
                         <Setter Property="HorizontalContentAlignment" Value="Center"/>
