@@ -12,11 +12,33 @@
         <vm:MainViewModel />
     </Window.DataContext>
     <Grid>
-        <StackPanel>
-            <Button Content="로그 생성" Command="{Binding AddLogCommand}" 
-                    Width="100" Height="30" Margin="10" HorizontalAlignment="Left"
-                    />
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <UniformGrid Grid.Row="0" Columns="3" Margin="10">
+            <Border Background="#F5F5F5" Margin="5" CornerRadius="8" BorderBrush="#DDD" BorderThickness="1">
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="관리 설비" HorizontalAlignment="Center" Foreground="#555" FontSize="14"/>
+                    <TextBlock Text="{Binding TotalCount, StringFormat={}{0}대}" HorizontalAlignment="Center" FontSize="28" FontWeight="Bold" Margin="0,5,0,0"/>
+                </StackPanel>
+            </Border>
 
+            <Border Background="#E8F5E9" Margin="5" CornerRadius="8" BorderBrush="#A5D6A7" BorderThickness="1">
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="정상 가동" HorizontalAlignment="Center" Foreground="#2E7D32" FontSize="14"/>
+                    <TextBlock Text="{Binding RunningCount}" HorizontalAlignment="Center" FontSize="28" FontWeight="Bold" Foreground="#2E7D32" Margin="0,5,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <Border Background="#FFEBEE" Margin="5" CornerRadius="8" BorderBrush="#EF9A9A" BorderThickness="1">
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="에러 발생" HorizontalAlignment="Center" Foreground="#C62828" FontSize="14"/>
+                    <TextBlock Text="{Binding ErrorCount}" HorizontalAlignment="Center" FontSize="28" FontWeight="Bold" Foreground="#C62828" Margin="0,5,0,0"/>
+                </StackPanel>
+            </Border>
+        </UniformGrid>
+        <Grid Grid.Row="1" Margin="10,0,10,10">
             <DataGrid ItemsSource="{Binding Logs}" AutoGenerateColumns="False" ColumnWidth="*" SelectionChanged="DataGrid_SelectionChanged" Height="380">
                 <DataGrid.Resources>
                     <Style TargetType="DataGridColumnHeader">
@@ -27,7 +49,7 @@
                         <Setter Property="VerticalAlignment" Value="Center"/>
                     </Style>
                 </DataGrid.Resources>
-                
+
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="시간" Binding="{Binding Timestamp, StringFormat='HH:mm:ss'}"/>
                     <DataGridTextColumn Header="설비" Binding="{Binding MachineName}"/>
@@ -37,6 +59,6 @@
                     <DataGridTextColumn Header="메시지" Binding="{Binding LogMessage}"/>
                 </DataGrid.Columns>
             </DataGrid>
-        </StackPanel>
+        </Grid>
     </Grid>
 </Window>

@@ -60,6 +60,28 @@ namespace WPF_MES_Monitoring_System.ViewModel
             }
 
             Logs.Insert(0, newLog);
+
+            OnPropertyChanged(nameof(TotalCount));
+            OnPropertyChanged(nameof(RunningCount));
+            OnPropertyChanged(nameof(ErrorCount));
+
+        }
+
+        public int TotalCount
+        {
+            get { return Logs.Count; }
+        }
+
+        // 가동 중인 로그 개수 계산
+        public int RunningCount
+        {
+            get { return Logs.Count(log => log.Status == "RUN"); }
+        }
+
+        // 에러 상태인 로그 개수 계산
+        public int ErrorCount
+        {
+            get { return Logs.Count(log => log.Status == "ERROR"); }
         }
 
         private void LoadDataFromDb()
