@@ -7,96 +7,198 @@
         xmlns:vm="clr-namespace:WPF_MES_Monitoring_System.ViewModel"
         xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
         mc:Ignorable="d"
-        Title="MachineView" Height="450" Width="800">
+        Title="Smart Factory Real-time Monitoring" Height="800" Width="1200" Background="#F0F2F5">
 
     <Window.DataContext>
         <vm:MainViewModel />
     </Window.DataContext>
-    <Grid>
+
+    <Grid Margin="15">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="2*"/>
+            <RowDefinition Height="1*"/>
         </Grid.RowDefinitions>
-        <UniformGrid Grid.Row="0" Columns="3" Margin="10">
-            <Border Background="#F5F5F5" Margin="5" CornerRadius="8" BorderBrush="#DDD" BorderThickness="1">
+
+        <UniformGrid Grid.Row="0" Columns="3" Margin="0,0,0,15">
+            <Border Background="White" Margin="5" CornerRadius="10" BorderBrush="#E0E0E0" BorderThickness="1" Padding="10">
                 <StackPanel VerticalAlignment="Center">
-                    <TextBlock Text="관리 설비" HorizontalAlignment="Center" Foreground="#555" FontSize="14"/>
+                    <TextBlock Text="관리 설비" HorizontalAlignment="Center" Foreground="#666" FontSize="14"/>
                     <TextBlock Text="{Binding TotalCount, StringFormat={}{0}대}" HorizontalAlignment="Center" FontSize="28" FontWeight="Bold" Margin="0,5,0,0"/>
                 </StackPanel>
             </Border>
 
-            <Border Background="#E8F5E9" Margin="5" CornerRadius="8" BorderBrush="#A5D6A7" BorderThickness="1">
+            <Border Background="#E8F5E9" Margin="5" CornerRadius="10" BorderBrush="#A5D6A7" BorderThickness="1" Padding="10">
                 <StackPanel VerticalAlignment="Center">
-                    <TextBlock Text="정상 가동" HorizontalAlignment="Center" Foreground="#2E7D32" FontSize="14"/>
+                    <TextBlock Text="정상 가동 (RUN)" HorizontalAlignment="Center" Foreground="#2E7D32" FontSize="14"/>
                     <TextBlock Text="{Binding RunningCount}" HorizontalAlignment="Center" FontSize="28" FontWeight="Bold" Foreground="#2E7D32" Margin="0,5,0,0"/>
                 </StackPanel>
             </Border>
 
-            <Border Background="#FFEBEE" Margin="5" CornerRadius="8" BorderBrush="#EF9A9A" BorderThickness="1">
+            <Border Background="#FFEBEE" Margin="5" CornerRadius="10" BorderBrush="#EF9A9A" BorderThickness="1" Padding="10">
                 <StackPanel VerticalAlignment="Center">
-                    <TextBlock Text="에러 발생" HorizontalAlignment="Center" Foreground="#C62828" FontSize="14"/>
+                    <TextBlock Text="연결 끊김 (OFFLINE)" HorizontalAlignment="Center" Foreground="#C62828" FontSize="14"/>
                     <TextBlock Text="{Binding ErrorCount}" HorizontalAlignment="Center" FontSize="28" FontWeight="Bold" Foreground="#C62828" Margin="0,5,0,0"/>
                 </StackPanel>
             </Border>
         </UniformGrid>
-        <Grid Grid.Row="1" Margin="10,0,10,10">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
 
-            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,5">
-                <TextBlock Text="설비 필터 : " VerticalAlignment="Center" Margin="0,0,10,0" />
-                <ComboBox Width="150" 
-                  ItemsSource="{Binding MachineOptions}" SelectedItem="{Binding SelectedMachine}" />
-            </StackPanel>
+        <UniformGrid Grid.Row="1" Columns="4" Margin="0,0,0,15">
+            <Border Background="White" Margin="5" CornerRadius="12" BorderBrush="#DDD" BorderThickness="1" Padding="15">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <StackPanel Grid.Row="0">
+                        <TextBlock Text="CNC-01" FontSize="20" FontWeight="ExtraBold" Foreground="{Binding Cnc01_TempColor}"/>
+                        <TextBlock Text="Port: 502" FontSize="12" Foreground="#95A5A6" Margin="0,0,0,10"/>
+                        <Separator Background="#F0F0F0" Margin="0,0,0,15"/>
 
-            <Grid Grid.Row="1">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="1.5*"/>
-                    <ColumnDefinition Width="1*"/>
-                </Grid.ColumnDefinitions>
+                        <TextBlock Text="Temperature" FontSize="12" Foreground="#7F8C8D"/>
+                        <TextBlock Text="{Binding Cnc01_Temp, StringFormat={}{0}.0°C}" FontSize="32" FontWeight="Bold" Foreground="#E67E22"/>
 
-                <DataGrid Grid.Column="0" ItemsSource="{Binding LogView}" AutoGenerateColumns="False" 
-                  ColumnWidth="*" SelectionChanged="DataGrid_SelectionChanged">
-                    <DataGrid.RowStyle>
-                        <Style TargetType="DataGridRow">
-                            <Setter Property="Background" Value="White"/>
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding Status}" Value="ERROR">
-                                    <Setter Property="Background" Value="RED"/>
-                                    <Setter Property="Foreground" Value="White"/>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </DataGrid.RowStyle>
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="시간" Binding="{Binding Timestamp, StringFormat='HH:mm:ss'}"/>
-                        <DataGridTextColumn Header="설비" Binding="{Binding MachineName}"/>
-                        <DataGridTextColumn Header="상태" Binding="{Binding Status}"/>
-                        <DataGridTextColumn Header="온도" Binding="{Binding Temperature}"/>
-                        <DataGridTextColumn Header="압력" Binding="{Binding Pressure}"/>
-                        <DataGridTextColumn Header="메시지" Binding="{Binding LogMessage}"/>
-                    </DataGrid.Columns>
-                </DataGrid>
+                        <TextBlock Text="Pressure" FontSize="12" Foreground="#7F8C8D" Margin="0,15,0,0"/>
+                        <TextBlock Text="{Binding Cnc01_Press, StringFormat={}{0} bar}" FontSize="32" FontWeight="Bold" Foreground="#3498DB"/>
+                    </StackPanel>
+                    <Border  Grid.Row="1" VerticalAlignment="Bottom" HorizontalAlignment="Right" Padding="10,4" CornerRadius="15" Background="{Binding Cnc01_StatusColor}">
+                        <TextBlock Text="{Binding Cnc01_Status}" Foreground="White" FontSize="11" FontWeight="Bold"/>
+                    </Border>
+                    <UniformGrid Grid.Row="2" Columns="2" Margin="0,15,0,0">
+                        <Button Content="START" Background="#2ECC71" Foreground="White" FontWeight="Bold" 
+                Command="{Binding StartCommand}" CommandParameter="502" Margin="2"/>
+                        <Button Content="STOP" Background="#E74C3C" Foreground="White" FontWeight="Bold" 
+                Command="{Binding StopCommand}" CommandParameter="502" Margin="2"/>
+                    </UniformGrid>
+                </Grid>
+            </Border>
 
-                <Border Grid.Column="1" Background="#F9F9F9" Margin="10,0,0,0" Padding="10" 
-                CornerRadius="5" BorderBrush="#DDD" BorderThickness="1">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                        </Grid.RowDefinitions>
-                        <TextBlock Text="실시간 불량률 (%)" HorizontalAlignment="Center" FontWeight="Bold" Margin="0,0,0,10"/>
+            <Border Background="White" Margin="5" CornerRadius="12" BorderBrush="#DDD" BorderThickness="1" Padding="15">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <StackPanel Grid.Row="0">
+                        <TextBlock Text="PRESS-02" FontSize="20" FontWeight="ExtraBold" Foreground="{Binding Press02_TempColor}"/>
+                        <TextBlock Text="Port: 503" FontSize="12" Foreground="#95A5A6" Margin="0,0,0,10"/>
+                        <Separator Background="#F0F0F0" Margin="0,0,0,15"/>
+                        <TextBlock Text="Temperature" FontSize="12" Foreground="#7F8C8D"/>
+                        <TextBlock Text="{Binding Press02_Temp, StringFormat={}{0}.0°C}" FontSize="32" FontWeight="Bold" Foreground="#E67E22"/>
+                        <TextBlock Text="Pressure" FontSize="12" Foreground="#7F8C8D" Margin="0,15,0,0"/>
+                        <TextBlock Text="{Binding Press02_Press, StringFormat={}{0} bar}" FontSize="32" FontWeight="Bold" Foreground="#3498DB"/>
+                    </StackPanel>
+                    <Border Grid.Row="1" VerticalAlignment="Bottom" HorizontalAlignment="Right" Padding="10,4" CornerRadius="15" Background="{Binding Press02_StatusColor}">
+                        <TextBlock Text="{Binding Press02_Status}" Foreground="White" FontSize="11" FontWeight="Bold"/>
+                    </Border>
+                    <UniformGrid  Grid.Row="3" Columns="2" Margin="0,15,0,0">
+                        <Button Content="START" Background="#2ECC71" Foreground="White" FontWeight="Bold" 
+                Command="{Binding StartCommand}" CommandParameter="503" Margin="2"/>
+                        <Button Content="STOP" Background="#E74C3C" Foreground="White" FontWeight="Bold" 
+                Command="{Binding StopCommand}" CommandParameter="503" Margin="2"/>
+                    </UniformGrid>
+                </Grid>
+            </Border>
 
-                        <lvc:CartesianChart Grid.Row="1" Series="{Binding DefectRateSeries}" LegendLocation="Right">
-                            <lvc:CartesianChart.AxisY>
-                                <lvc:Axis Title="Rate (%)" MinValue="0" MaxValue="100"/>
-                            </lvc:CartesianChart.AxisY>
-                        </lvc:CartesianChart>
-                    </Grid>
-                </Border>
-            </Grid>
+            <Border Background="White" Margin="5" CornerRadius="12" BorderBrush="#DDD" BorderThickness="1" Padding="15">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <StackPanel Grid.Row="0">
+                        <TextBlock Text="ROBOT-03" FontSize="20" FontWeight="ExtraBold" Foreground="{Binding Robot03_TempColor}"/>
+                        <TextBlock Text="Port: 504" FontSize="12" Foreground="#95A5A6" Margin="0,0,0,10"/>
+                        <Separator Background="#F0F0F0" Margin="0,0,0,15"/>
+                        <TextBlock Text="Temperature" FontSize="12" Foreground="#7F8C8D"/>
+                        <TextBlock Text="{Binding Robot03_Temp, StringFormat={}{0}.0°C}" FontSize="32" FontWeight="Bold" Foreground="#E67E22"/>
+                        <TextBlock Text="Pressure" FontSize="12" Foreground="#7F8C8D" Margin="0,15,0,0"/>
+                        <TextBlock Text="{Binding Robot03_Press, StringFormat={}{0} bar}" FontSize="32" FontWeight="Bold" Foreground="#3498DB"/>
+                    </StackPanel>
+                    <Border  Grid.Row="1" VerticalAlignment="Bottom" HorizontalAlignment="Right" Padding="10,4" CornerRadius="15" Background="{Binding Robot03_StatusColor}">
+                        <TextBlock Text="{Binding Robot03_Status}" Foreground="White" FontSize="11" FontWeight="Bold"/>
+                    </Border>
+                    <UniformGrid Grid.Row="2" Columns="2" Margin="0,15,0,0">
+                        <Button Content="START" Background="#2ECC71" Foreground="White" FontWeight="Bold" 
+                Command="{Binding StartCommand}" CommandParameter="504" Margin="2"/>
+                        <Button Content="STOP" Background="#E74C3C" Foreground="White" FontWeight="Bold" 
+                Command="{Binding StopCommand}" CommandParameter="504" Margin="2"/>
+                    </UniformGrid>
+                </Grid>
+            </Border>
+
+            <Border Background="White" Margin="5" CornerRadius="12" BorderBrush="#DDD" BorderThickness="1" Padding="15">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <StackPanel Grid.Row="0">
+                        <TextBlock Text="PACK-04" FontSize="20" FontWeight="ExtraBold" Foreground="{Binding Pack04_TempColor}"/>
+                        <TextBlock Text="Port: 505" FontSize="12" Foreground="#95A5A6" Margin="0,0,0,10"/>
+                        <Separator Background="#F0F0F0" Margin="0,0,0,15"/>
+                        <TextBlock Text="Temperature" FontSize="12" Foreground="#7F8C8D"/>
+                        <TextBlock Text="{Binding Pack04_Temp, StringFormat={}{0}.0°C}" FontSize="32" FontWeight="Bold" Foreground="#E67E22"/>
+                        <TextBlock Text="Pressure" FontSize="12" Foreground="#7F8C8D" Margin="0,15,0,0"/>
+                        <TextBlock Text="{Binding Pack04_Press, StringFormat={}{0} bar}" FontSize="32" FontWeight="Bold" Foreground="#3498DB"/>
+                    </StackPanel>
+                    <Border  Grid.Row="1" VerticalAlignment="Bottom" HorizontalAlignment="Right" Padding="10,4" CornerRadius="15" Background="{Binding Pack04_StatusColor}">
+                        <TextBlock Text="{Binding Pack04_Status}" Foreground="White" FontSize="11" FontWeight="Bold"/>
+                    </Border>
+                    <UniformGrid  Grid.Row="2" Columns="2" Margin="0,15,0,0">
+                        <Button Content="START" Background="#2ECC71" Foreground="White" FontWeight="Bold" 
+                Command="{Binding StartCommand}" CommandParameter="505" Margin="2"/>
+                        <Button Content="STOP" Background="#E74C3C" Foreground="White" FontWeight="Bold" 
+                Command="{Binding StopCommand}" CommandParameter="505" Margin="2"/>
+                    </UniformGrid>
+                </Grid>
+            </Border>
+        </UniformGrid>
+
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="1*"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Background="White" CornerRadius="10" BorderBrush="#DDD" BorderThickness="1" Padding="10">
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,10">
+                        <TextBlock Text="최근 발생 로그" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,20,0"/>
+                        <TextBlock Text="필터: " VerticalAlignment="Center"/>
+                        <ComboBox Width="120" ItemsSource="{Binding MachineOptions}" SelectedItem="{Binding SelectedMachine}" Margin="5,0,0,0"/>
+                    </StackPanel>
+                    <DataGrid ItemsSource="{Binding LogView}" AutoGenerateColumns="False" IsReadOnly="True" BorderThickness="0" Background="Transparent" GridLinesVisibility="Horizontal">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="시간" Binding="{Binding Timestamp, StringFormat='HH:mm:ss'}" Width="80"/>
+                            <DataGridTextColumn Header="설비명" Binding="{Binding MachineName}" Width="100"/>
+                            <DataGridTextColumn Header="상태" Binding="{Binding Status}" Width="80"/>
+                            <DataGridTextColumn Header="온도" Binding="{Binding Temperature}" Width="60"/>
+                            <DataGridTextColumn Header="압력" Binding="{Binding Pressure}" Width="60"/>
+                            <DataGridTextColumn Header="메시지" Binding="{Binding LogMessage}" Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </Border>
+
+            <Border Grid.Column="1" Background="White" Margin="15,0,0,0" CornerRadius="10" BorderBrush="#DDD" BorderThickness="1" Padding="15">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Text="실시간 온도 (°C)" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,10"/>
+                    <lvc:CartesianChart Grid.Row="1" Series="{Binding DefectRateSeries}" LegendLocation="None">
+                        <lvc:CartesianChart.AxisY>
+                            <lvc:Axis MinValue="150" MaxValue="500"/>
+                        </lvc:CartesianChart.AxisY>
+                    </lvc:CartesianChart>
+                </Grid>
+            </Border>
         </Grid>
     </Grid>
 </Window>

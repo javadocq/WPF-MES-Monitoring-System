@@ -51,6 +51,27 @@ namespace WPF_MES_Monitoring_System.ViewModel.Service
             }
         }
 
+        public async Task ControlMachineAsync(int port, bool start)
+        {
+            try
+            {
+                using (var client = new TcpClient())
+                {
+                    await client.ConnectAsync("127.0.0.1", port);
+                    if (client.Connected)
+                    {
+                        var master = ModbusIpMaster.CreateIp(client);
+                        // Coil 주소 0번(실제 주소 1번)에 값을 씁니다.
+                        await Task.Run(() => master.WriteSingleCoil(1, 0, start));
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // 로그 기록 등 예외 처리
+            }
+        }
+
 
         // 저장
         public void SaveLog(MachineLog log)
