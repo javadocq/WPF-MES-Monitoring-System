@@ -168,18 +168,28 @@ namespace WPF_MES_Monitoring_System.ViewModel
 
         private MachineService machineService = new MachineService();
 
-        private void Timer_Tick(object? sender, EventArgs e)
+        private async void Timer_Tick(object? sender, EventArgs e)
         {
-            var newLog = machineService.GenerateRandomLog();
 
-            machineService.SaveLog(newLog);
+            var machineConfigs = new Dictionary<string, int>
+            {
+                { "CNC-01", 502 }, { "PRESS-02", 503 }, { "ROBOT-03", 504 }, { "PACK-04", 505 }
+            };
+            foreach(var config in machineConfigs)
+            {
+                var newLog = await machineService.GetRealTimeLogAysnc(config.Key,config.Value);
 
-            Logs.Insert(0, newLog);
-            // 상태 요약 UI 갱신 알림
-            UpdateAllStatus();
+                machineService.SaveLog(newLog);
 
-            // 차트 데이터 갱신
-            UpdateChartData();
+                Logs.Insert(0, newLog);
+                if (Logs.Count > 100) Logs.RemoveAt(100);
+
+                // 상태 요약 UI 갱신 알림
+                UpdateAllStatus();
+
+                // 차트 데이터 갱신
+                UpdateChartData();
+            }
         }
 
         private void ApplyFilter()
