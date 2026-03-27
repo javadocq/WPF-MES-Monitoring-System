@@ -180,6 +180,8 @@ namespace WPF_MES_Monitoring_System.ViewModel
 
             logView = CollectionViewSource.GetDefaultView(Logs);
             logView.Filter = FilterLogs; // 필터 조건 함수 연결
+
+
         }
 
         private void InitializeChart()
@@ -187,14 +189,10 @@ namespace WPF_MES_Monitoring_System.ViewModel
             // 불량률 차트 초기화
             DefectRateSeries = new SeriesCollection
             {
-                new LineSeries
-                {
-                    Title = "온도 (°C)",
-                    Values = new ChartValues<ObservableValue>(),
-                    PointGeometry = DefaultGeometries.Circle,
-                    Stroke = Brushes.Crimson,
-                    Fill = Brushes.Transparent,
-                }
+                new LineSeries { Title = "CNC-01", Values = new ChartValues<ObservableValue>(), Stroke = Brushes.OrangeRed, Fill = Brushes.Transparent },
+                new LineSeries { Title = "PRESS-02", Values = new ChartValues<ObservableValue>(), Stroke = Brushes.DodgerBlue, Fill = Brushes.Transparent },
+                new LineSeries { Title = "ROBOT-03", Values = new ChartValues<ObservableValue>(), Stroke = Brushes.Green, Fill = Brushes.Transparent },
+                new LineSeries { Title = "PACK-04", Values = new ChartValues<ObservableValue>(), Stroke = Brushes.Purple, Fill = Brushes.Transparent }
             };
             UpdateChartData();
         }
@@ -204,6 +202,34 @@ namespace WPF_MES_Monitoring_System.ViewModel
             var targetList = SelectedMachine == ALL_MACHINES
                 ? Logs.Take(20).ToList()
                 : Logs.Where(log => log.MachineName == SelectedMachine).Take(20).ToList();
+
+            var currentData = Logs.GroupBy(l => l.MachineName)
+                                  .Select(g => g.First())
+                                  .ToList();
+
+            foreach(var log in currentData)
+            {
+                // 기계 이름에 맞는 시리즈 인덱스 찾기
+                int seriesIndex = log.MachineName switch
+                {
+                    "CNC-01" => 0,
+                    "PRESS-02" => 1,
+                    "ROBOT-03" => 2,
+                    "PACK-04" => 3,
+                    _ => -1
+                };
+
+                if(seriesIndex != -1)
+                {
+                    var targetSeries = DefectRateSeries[seriesIndex].Values;
+
+                    if(targetSeries.Count >= 20)
+                    {
+                        targetSeries.RemoveAt(0);
+                    }
+                    targetSeries.Add(new ObservableValue(log.Temperature));
+                }
+            }
 
             UpdateTemperate(targetList);
         }
