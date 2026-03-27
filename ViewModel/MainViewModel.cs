@@ -128,7 +128,6 @@ namespace WPF_MES_Monitoring_System.ViewModel
                 selectedMachine = value; 
                 OnPropertyChanged(); 
                 ApplyFilter(); 
-                UpdateChartData();
             }
         }
 
@@ -202,7 +201,6 @@ namespace WPF_MES_Monitoring_System.ViewModel
             Press02_Series = CreateMiniSeries(Brushes.DodgerBlue);
             Robot03_Series = CreateMiniSeries(Brushes.LimeGreen);
             Pack04_Series = CreateMiniSeries(Brushes.MediumPurple);
-            UpdateChartData();
         }
 
         private SeriesCollection CreateMiniSeries(Brush color)
@@ -220,11 +218,40 @@ namespace WPF_MES_Monitoring_System.ViewModel
                 };
         }
 
-        private void UpdateChartData()
-        {
-            //
-        }
+        // 전체 가동 시간 및 개별 기계 가동 시간 측정
+        private double _totalTickCount = 0;
+        private double _cnc01OnlineTick = 0;
+        private double _press02OnlineTick = 0;
+        private double _robot03OnlineTick = 0;
+        private double _pack04OnlineTick = 0;
 
+        private double _cnc01Rate;
+        public double Cnc01_Rate { get => _cnc01Rate; set { _cnc01Rate = value; OnPropertyChanged(); } }
+
+        private double _press02Rate;
+        public double Press02_Rate { get => _press02Rate; set { _press02Rate = value; OnPropertyChanged(); } }
+
+        private double _robot03Rate;
+        public double Robot03_Rate { get => _robot03Rate; set { _robot03Rate = value; OnPropertyChanged(); } }
+
+        private double _pack04Rate;
+        public double Pack04_Rate { get => _pack04Rate; set { _pack04Rate = value; OnPropertyChanged(); } }
+
+        private void UpdateUtilizationRates()
+        {
+            _totalTickCount++;
+
+            if (Cnc01_Status == STATUS_ON) _cnc01OnlineTick++;
+            if (Press02_Status == STATUS_ON) _press02OnlineTick++;
+            if (Robot03_Status == STATUS_ON) _robot03OnlineTick++;
+            if (Pack04_Status == STATUS_ON) _pack04OnlineTick++;
+
+            // 가동률 계산 (소수점 1자리)
+            Cnc01_Rate = Math.Round((_cnc01OnlineTick / _totalTickCount) * 100, 1);
+            Press02_Rate = Math.Round((_press02OnlineTick / _totalTickCount) * 100, 1);
+            Robot03_Rate = Math.Round((_robot03OnlineTick / _totalTickCount) * 100, 1);
+            Pack04_Rate = Math.Round((_pack04OnlineTick / _totalTickCount) * 100, 1);
+        }
         private void SetupTimer()
         {
             timer = new DispatcherTimer();
@@ -237,21 +264,6 @@ namespace WPF_MES_Monitoring_System.ViewModel
             OnPropertyChanged(nameof(TotalCount));
             OnPropertyChanged(nameof(RunningCount));
             OnPropertyChanged(nameof(ErrorCount));
-        }
-
-        private void UpdateTemperate(List<MachineLog> logList)
-        {
-            if (logList.Count == 0)
-            {
-                return;
-            }
-            double TemperLog = logList.First().Temperature;
-
-            // 차트 값 (최근 10개만 업데이트)
-            if (DefectRateSeries[0].Values.Count > 10)
-                DefectRateSeries[0].Values.RemoveAt(0);
-
-            DefectRateSeries[0].Values.Add(new ObservableValue(TemperLog));
         }
 
         private IEnumerable<MachineLog> LatestMachineLogs => Logs.GroupBy(x => x.MachineName).Select(g => g.First());
@@ -293,8 +305,7 @@ namespace WPF_MES_Monitoring_System.ViewModel
         private MachineService machineService = new MachineService();
 
         private async void Timer_Tick(object? sender, EventArgs e)
-        {
-
+        { 
             var tasks = new List<Task<MachineLog>>
             {
                 machineService.GetRealTimeLogAysnc("CNC-01", 502),
@@ -322,14 +333,10 @@ namespace WPF_MES_Monitoring_System.ViewModel
 
             }
 
+            UpdateUtilizationRates();
+
             // 상태 요약 UI 갱신 알림
             UpdateAllStatus();
-
-            if (results.Any(r => r.Status == STATUS_ON))
-            {
-                UpdateChartData();
-            }
-
         }
 
         private void UpdateMachineProperties(MachineLog log)
