@@ -1,16 +1,17 @@
 ﻿using LiveCharts;
+using LiveCharts.Defaults;
 using LiveCharts.Wpf;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
+using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
 using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Threading;
-using System.Diagnostics;
 using WPF_MES_Monitoring_System.Model;
 using WPF_MES_Monitoring_System.ViewModel.Command;
 using WPF_MES_Monitoring_System.ViewModel.Service;
-using LiveCharts.Defaults;
 
 namespace WPF_MES_Monitoring_System.ViewModel
 {
@@ -314,38 +315,56 @@ namespace WPF_MES_Monitoring_System.ViewModel
         private MachineService machineService = new MachineService();
 
         private async void Timer_Tick(object? sender, EventArgs e)
-        { 
-            var tasks = new List<Task<MachineLog>>
+        {
+
+            var machineConfigs = new[]
             {
-                machineService.GetRealTimeLogAysnc("CNC-01", 502),
-                machineService.GetRealTimeLogAysnc("PRESS-02", 503),
-                machineService.GetRealTimeLogAysnc("ROBOT-03", 504),
-                machineService.GetRealTimeLogAysnc("PACK-04", 505)
+                (Name: "CNC-01", Port: 502),
+                (Name: "PRESS-02", Port: 503),
+                (Name: "ROBOT-03", Port: 504),
+                (Name: "PACK-04", Port: 505)
             };
 
-            // 모든 응답이 올 때까지 기다림
-            var results = await Task.WhenAll(tasks);
-
-            foreach (var newLog in results)
+            foreach (var config in machineConfigs)
             {
+                // _ = 는 '던져놓고 잊기(Fire and Forget)' 방식입니다.
+                _ = ProcessMachineLogAsync(config.Name, config.Port);
+            }
+        }
+
+        private async Task ProcessMachineLogAsync(string name, int port)
+        {
+            try
+            {
+                // 1. 비동기 통신 (개별적으로 실행됨)
+                var newLog = await machineService.GetRealTimeLogAysnc(name, port);
+
+                // 2. DB 저장 (백그라운드에서 실행)
                 if (newLog.Status == STATUS_ON)
                 {
                     machineService.SaveLog(newLog);
-
-                    App.Current.Dispatcher.Invoke(() => {
-                        Logs.Insert(0, newLog);
-                        if (Logs.Count > 100) Logs.RemoveAt(100);
-                    });
                 }
-                // 각 기계별 개별 프로퍼티(카드 UI) 업데이트
-                UpdateMachineProperties(newLog);
 
+                // 3. UI 업데이트 (Dispatcher를 통해 순차적으로 처리)
+                App.Current.Dispatcher.Invoke(() =>
+                {
+                    // 로그 리스트 추가 및 100개 제한
+                    Logs.Insert(0, newLog);
+                    if (Logs.Count > 100) Logs.RemoveAt(100);
+
+                    // 카드 UI 프로퍼티 업데이트
+                    UpdateMachineProperties(newLog);
+
+                    // 가동률 및 상태 요약 갱신
+                    UpdateUtilizationRates();
+                    UpdateAllStatus();
+                });
             }
-
-            UpdateUtilizationRates();
-
-            // 상태 요약 UI 갱신 알림
-            UpdateAllStatus();
+            catch (Exception ex)
+            {
+                // 예외 처리 로직 (로그 기록 등)
+                Debug.WriteLine($"Error processing {name}: {ex.Message}");
+            }
         }
 
         private void UpdateMachineProperties(MachineLog log)
