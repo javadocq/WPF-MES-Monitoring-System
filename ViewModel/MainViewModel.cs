@@ -153,6 +153,7 @@ namespace WPF_MES_Monitoring_System.ViewModel
         public ActionCommand<string> StopCommand { get; }
 
 
+
         private DispatcherTimer timer;
         public MainViewModel()
         {
@@ -168,11 +169,26 @@ namespace WPF_MES_Monitoring_System.ViewModel
 
             StartCommand = new ActionCommand<string>(async (port) => {
                 await machineService.ControlMachineAsync(int.Parse(port), true);
+                // 버튼 누르자마자 UI 즉시 갱신 (사용자 체감 성능 향상)
+                UpdateStatusImmediately(port, STATUS_ON);
             });
 
             StopCommand = new ActionCommand<string>(async (port) => {
                 await machineService.ControlMachineAsync(int.Parse(port), false);
+                UpdateStatusImmediately(port, STATUS_OFF);
             });
+        }
+
+        private void UpdateStatusImmediately(string port, string status)
+        {
+            switch (port)
+            {
+                case "502": Cnc01_Status = status; break;
+                case "503": Press02_Status = status; break;
+                case "504": Robot03_Status = status; break;
+                case "505": Pack04_Status = status; break;
+            }
+            UpdateAllStatus(); // 상단 요약 카운트 즉시 갱신
         }
 
         private void InitializeData()

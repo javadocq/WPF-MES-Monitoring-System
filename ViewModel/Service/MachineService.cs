@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Net.Sockets;
 using WPF_MES_Monitoring_System.Model;
+using System.Threading;
 
 namespace WPF_MES_Monitoring_System.ViewModel.Service
 {
@@ -12,11 +13,20 @@ namespace WPF_MES_Monitoring_System.ViewModel.Service
         private static readonly ConcurrentDictionary<int, (TcpClient Client, IModbusMaster Master)> _connections
             = new ConcurrentDictionary<int, (TcpClient, IModbusMaster)>();
 
+        private static readonly ConcurrentDictionary<int, SemaphoreSlim> _locks
+            = new ConcurrentDictionary<int, SemaphoreSlim>();
+
+        // 포트별 세마포어를 가져오는 헬퍼 메서드
+        private SemaphoreSlim GetLock(int port) => _locks.GetOrAdd(port, _ => new SemaphoreSlim(1, 1));
         // 가상 서버에 연결
         public async Task<MachineLog> GetRealTimeLogAysnc(string machineName, int port)
         {
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start(); // 측정 시작
+
+            // 통신 시작 전 '내 차례'가 올 때까지 기다립니다.
+            var semaphore = GetLock(port);
+            await semaphore.WaitAsync();
 
             try
             {
@@ -52,11 +62,18 @@ namespace WPF_MES_Monitoring_System.ViewModel.Service
                     Status = "OFFLINE",
                     LogMessage = $"Error: {ex.Message}"
                 };
+            } finally
+            {
+                // 작업이 끝나면 다음 차례를 위해 풀어준다.
+                semaphore.Release();
             }
         }
 
         public async Task ControlMachineAsync(int port, bool start)
         {
+            // 버튼 제어도 동일한 세마포어 사용
+            var semaphore = GetLock(port);
+            await semaphore.WaitAsync();
             try
             {
                 var (client, master) = await GetOrCreateConnection(port);
@@ -65,6 +82,10 @@ namespace WPF_MES_Monitoring_System.ViewModel.Service
             catch (Exception)
             {
                 CleanupConnection(port);
+            }
+            finally
+            {
+                semaphore.Release();
             }
         }
 
